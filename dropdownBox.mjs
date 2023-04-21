@@ -2,14 +2,15 @@ import MarkUpCode from  "./markUpCode.mjs"		// keep this file html/css free
 
 /*
 TODO:
-- get selected elements
+DONE - get selected elements
 - pre-select
-- single-select
-- disable search
-- close
-- clearall button,
+DONE - single-select
+UNNE - disable search
+DONE - close
+DONE - clearall button,
 - have min. 1 selected
 - max selection
+- avoid that mandatory "select all" selects more then max selection
 - locking
 - when moving in DOM, move also ECL-generated HTML
 - on click, give just now clicked key/vaue to onselect callback
@@ -25,11 +26,11 @@ Plus, some ECL select specific functionality.
 // please note comments of "get selected" and "set data".
 class Element extends HTMLElement {
 
-	#_cfg
+	#_cfg = {}
 
 	#$(elementId) { return this.getElementById(elementId)	}
 
-	constructor() {	super(); this.#_cfg={} }
+	constructor() {	super() }
 
 	connectedCallback() {	}
 	disconnectedCallback() {console.debug("dropdownBox: disconnected") }
@@ -47,16 +48,21 @@ class Element extends HTMLElement {
 	set clearallenabled(val) { this.setAttribute('clearallenabled', val) }
 	set locked(val) { this.setAttribute('locked', val) }
 
-	// there's HTML which you wrote (<ecl-like-select> which creates a <select> as a child),
-	// and after calling init(),
+	// there's HTML coming from the user (<ecl-like-select> which creates a <select> as a child),
+	// and - for multiselect - after calling init(),
 	// another HTML content (a <div>) is being generated (by ECL js code) as the next sibling.
-	// your HTML is being hidden while the other is shown.
-	// the selection information however is in your HTML content, not in the generated one.
+	// the user's HTML is being hidden while the other is shown (in multiselect only!).
+	// the selection information however is in the original select HTML not in the generated one.
 	get selected() {
 		const retVal = new Map()
-		this.querySelectorAll("select option[selected]").forEach( e=> {
-			retVal.set(e.getAttribute("value"), e.textContent)
-		})
+		if(this.#_cfg.ismultiselect) {
+			this.querySelectorAll("select option[selected]").forEach( e=> {
+				retVal.set(e.getAttribute("value"), e.textContent)
+			})
+		} else {
+			const sel = this.querySelector("select")
+			retVal.set(sel.value, sel.options[sel.selectedIndex].textContent)
+		}
 		return retVal
 	}
 
@@ -68,7 +74,11 @@ class Element extends HTMLElement {
 	set data(val) {
 		this.appendChild( MarkUpCode.getHtmlTemplate(MarkUpCode.getHtml(this.#_cfg, val)).cloneNode(true) )
 		setTimeout(()=> {
-			new ECL.Select(this.firstElementChild).init()
+			if(this.#_cfg.ismultiselect) {
+				new ECL.Select(this.firstElementChild.firstElementChild).init()
+			} else {
+				// doesnt need new
+			}			
 			this.#_registerEvents()
 		}, 100)
 	}
@@ -107,8 +117,15 @@ class Element extends HTMLElement {
 	}
 
 	#_registerEvents() {
-		const argl = this.nextElementSibling.querySelectorAll("div [class='ecl-checkbox']")
-		argl.forEach(e=>e.addEventListener("click", e=>this.#invokeOnSelectCallback("","")))		//TODO
+		if(this.#_cfg.ismultiselect) {
+			const argl = this.firstElementChild.nextElementSibling.querySelectorAll("div [class='ecl-checkbox']")
+			argl.forEach(e=> {
+				e.addEventListener("click", e=>this.#invokeOnSelectCallback("",""))
+			})
+		} else {
+			const argl = this.querySelector("div select")
+			argl.addEventListener("change", e=>this.#invokeOnSelectCallback("",""))
+		}
 	}
 
 	#invokeOnSelectCallback(key,val) {

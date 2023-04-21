@@ -20,21 +20,36 @@ export default class MarkUpCode {
   }
 
   static getIntro(cfg) {
-    console.log(cfg, cfg.hasOwnProperty("ismultiselect"))
+    let m = ""
+    if(cfg.hasOwnProperty("ismultiselect")) {
+      m += "multiple data-ecl-select-multiple "
+      m += "data-ecl-select-all='Select&#x20;all' "
+    }
+
     return `
+    <div class="ecl-select__container ecl-select__container--m">
     <select
     class="ecl-select"
-    ${typeof cfg.ismultiselect!=="undefined"?"multiple data-ecl-select-multiple":""}
-    data-ecl-select-default="Select&#x20;an&#x20;item" 
-    data-ecl-select-search="Enter&#x20;keyword" 
-    data-ecl-select-no-results="No&#x20;results&#x20;found" 
-    data-ecl-select-all="Select&#x20;all" 
-    data-ecl-select-clear-all="Clear&#x20;all" 
-    data-ecl-select-close="Close">`
+    ${m}
+    data-ecl-select-default="Select&#x20;an&#x20;item "
+    ${cfg.hasOwnProperty("closeenabled")?"data-ecl-select-close='Close' ":""}
+    ${cfg.hasOwnProperty("clearallenabled")?"data-ecl-select-clear-all='Clear&#x20;all' ":""}
+    >`
+   
+   /*
+   data-ecl-select-search="Enter&#x20;keyword" 
+   data-ecl-select-no-results="No&#x20;results&#x20;found" 
+   */
+
   }
 
   static getOutro() {
-    return `</select>`
+    return `</select>
+    <div class="ecl-select__icon"><svg class="ecl-icon ecl-icon--s ecl-icon--rotate-180 ecl-select__icon-shape"
+    focusable="false" aria-hidden="true">
+    <use xlink:href="/redist/ecl/icons.svg#corner-arrow"></use>
+    </svg></div></div>
+    `
   }
 
 }
