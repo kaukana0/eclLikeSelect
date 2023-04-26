@@ -14,7 +14,9 @@ export default class MarkUpCode {
   static getHtml(cfg, data) {
     let retVal = this.getIntro(cfg)
     for (let [key, val] of data[0]) {
-      retVal += `<option value="${key}">${val}</option>`
+      //console.log(key)    // TODO
+      const sel = cfg.hasOwnProperty("selected") && cfg.selected.includes(key) ? " selected" : ""
+      retVal += `<option value="${key}"${sel}>${val}</option>`
     }
     return retVal+this.getOutro()
   }

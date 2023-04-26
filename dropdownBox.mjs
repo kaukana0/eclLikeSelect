@@ -77,7 +77,7 @@ class Element extends HTMLElement {
 			if(this.#_cfg.ismultiselect) {
 				new ECL.Select(this.firstElementChild.firstElementChild).init()
 			} else {
-				// doesnt need new
+				// doesn't create extra HTML therefore doesnt need new ECL.Select()
 			}			
 			this.#_registerEvents()
 		}, 100)
